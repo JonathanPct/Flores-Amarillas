@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ---------- Tokens de color ---------- */
+
   :root {
     --bg1: #CFE8D2;
     --bg2: #FBEFD5;
@@ -57,7 +57,6 @@
     overflow-x: hidden;
   }
 
-  /* ---------- Capa ambiental de partículas ---------- */
   .sky { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
   .float {
     position: absolute;
@@ -72,7 +71,6 @@
     100% { transform: translate(calc(var(--sway, 20px) * -1), -115vh) rotate(var(--rot, 40deg)); opacity: 0; }
   }
 
-  /* ---------- Estructura ---------- */
   main {
     position: relative;
     z-index: 1;
@@ -106,7 +104,6 @@
   .stage svg [data-hit] { cursor: pointer; outline: none; }
   .stage svg [data-hit]:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 
-  /* Globo de diálogo */
   .bubble {
     position: absolute;
     top: 1%;
@@ -141,7 +138,6 @@
     border-radius: 0 0 4px 0;
   }
 
-  /* Partículas de las explosiones al tocar */
   .burst {
     position: absolute;
     pointer-events: none;
@@ -155,7 +151,6 @@
 
   .hint { margin: -6px 0 0; font-size: .92rem; color: var(--ink-soft); text-align: center; }
 
-  /* ---------- Tarjeta de mensaje ---------- */
   .card {
     width: 100%;
     max-width: 420px;
@@ -216,7 +211,6 @@
   .panel input[readonly] { font-size: .85rem; text-overflow: ellipsis; }
   .recipient #editBtn, .recipient #panel { display: none !important; }
 
-  /* ---------- Animaciones del personaje ---------- */
   #arrive { animation: arrive 1.9s ease-out both; }
   @keyframes arrive {
     0%   { transform: translate(-170px, 0); opacity: 0; }
@@ -240,7 +234,7 @@
     100% { transform: translateY(0) scale(1); }
   }
 
-  #head { transform-box: view-box; transform-origin: 180px 250px; animation: tilt 4.2s ease-in-out infinite; }
+  #head, #headB { transform-box: view-box; transform-origin: 180px 250px; animation: tilt 4.2s ease-in-out infinite; }
   @keyframes tilt { 0%, 100% { transform: rotate(-2.2deg); } 50% { transform: rotate(2.2deg); } }
 
   #bouquet { transform-box: view-box; transform-origin: 180px 420px; animation: sway 3.8s ease-in-out infinite; }
@@ -271,12 +265,21 @@
   .star { transform-box: fill-box; transform-origin: center; animation: twinkle 2.6s ease-in-out infinite; animation-delay: var(--d, 0s); }
   @keyframes twinkle { 0%, 100% { transform: scale(.5); opacity: .5; } 50% { transform: scale(1.15); opacity: 1; } }
 
+  body[data-pj="b"] .pj-a, body[data-pj="a"] .pj-b { display: none; }
+  .earB-l { transform-box: view-box; transform-origin: 122px 240px; animation: earL 6s ease-in-out infinite; }
+  .earB-r { transform-box: view-box; transform-origin: 238px 240px; animation: earR 6s ease-in-out 1.6s infinite; }
+
+  .panel .field-label { font-size: .92rem; color: var(--ink-soft); }
+  .panel .choices { display: flex; gap: 8px; flex-wrap: wrap; }
+  .panel .choice { flex: 1 1 140px; padding: 8px 12px; font-size: .95rem; }
+  .panel .choice[aria-checked="true"] { background: var(--ink); color: var(--bg1); border-color: var(--ink); }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 </style>
 </head>
-<body>
+<body data-pj="a">
 
 <div class="sky" id="sky" aria-hidden="true"></div>
 
@@ -286,7 +289,7 @@
   <div class="stage" id="stage">
     <div class="bubble" id="bubble" aria-live="polite"></div>
 
-    <svg id="scene" viewBox="0 0 360 500" role="img" aria-label="Personaje kawaii con orejas de ratón, gafas redondas y sombrerito de paja, sosteniendo un ramo de flores amarillas con carita">
+    <svg id="scene" viewBox="0 0 360 500" role="img" aria-label="Personaje kawaii sosteniendo un ramo de flores amarillas con carita">
       <defs>
         <radialGradient id="glow" cx="50%" cy="50%" r="50%">
           <stop offset="0" stop-color="var(--glow)" stop-opacity=".95"/>
@@ -298,11 +301,9 @@
         </pattern>
       </defs>
 
-      <!-- Resplandor y sombra -->
       <ellipse cx="180" cy="270" rx="175" ry="175" fill="url(#glow)"/>
       <ellipse cx="180" cy="470" rx="105" ry="12" fill="#000" opacity=".12"/>
 
-      <!-- Destellos -->
       <g fill="#FFD84D">
         <g transform="translate(52 196)"><path class="star" style="--d:0s" d="M0 -9 L2.5 -2.5 L9 0 L2.5 2.5 L0 9 L-2.5 2.5 L-9 0 L-2.5 -2.5Z"/></g>
         <g transform="translate(312 172)"><path class="star" style="--d:.7s" d="M0 -9 L2.5 -2.5 L9 0 L2.5 2.5 L0 9 L-2.5 2.5 L-9 0 L-2.5 -2.5Z"/></g>
@@ -312,11 +313,11 @@
 
       <g id="arrive"><g id="bob"><g id="jump">
 
-        <!-- Zapatos -->
+        <g class="pj pj-a">
+
         <ellipse cx="140" cy="454" rx="22" ry="12" fill="#6B4A32" stroke="#4A3222" stroke-width="3"/>
         <ellipse cx="220" cy="454" rx="22" ry="12" fill="#6B4A32" stroke="#4A3222" stroke-width="3"/>
 
-        <!-- Cola con lazo verde -->
         <g class="tail">
           <path d="M236 392 Q292 384 286 344 Q283 324 298 318" fill="none" stroke="#5B4030" stroke-width="10" stroke-linecap="round"/>
           <path d="M236 392 Q292 384 286 344 Q283 324 298 318" fill="none" stroke="#D39A78" stroke-width="5" stroke-linecap="round"/>
@@ -327,7 +328,6 @@
           </g>
         </g>
 
-        <!-- Cuerpo: falda, corpiño, tirantes y chal -->
         <g id="bodyG" data-hit tabindex="0" role="button" aria-label="Tocar al personaje">
           <path d="M126 372 L234 372 L254 442 Q180 462 106 442 Z" fill="#7B5537" stroke="#4A3222" stroke-width="3" stroke-linejoin="round"/>
           <ellipse cx="180" cy="332" rx="54" ry="50" fill="#DCC57C" stroke="#4A3222" stroke-width="3"/>
@@ -342,9 +342,8 @@
           <path d="M108 306 Q140 284 180 286 Q220 284 252 306 Q266 336 250 356 Q238 340 228 326 Q180 314 132 326 Q122 340 110 356 Q94 336 108 306 Z" fill="#C9A06B" stroke="#4A3222" stroke-width="3" stroke-linejoin="round"/>
         </g>
 
-        <!-- Cabeza -->
         <g id="head" data-hit tabindex="0" role="button" aria-label="Tocar al personaje">
-          <!-- Orejas redondas de ratón -->
+
           <g class="ear-l">
             <circle cx="108" cy="146" r="28" fill="#E5C592" stroke="#5B4030" stroke-width="3"/>
             <circle cx="110" cy="149" r="15" fill="#F0BFA6"/>
@@ -354,12 +353,10 @@
             <circle cx="250" cy="149" r="15" fill="#F0BFA6"/>
           </g>
 
-          <!-- Cabello trasero, cuello y cara -->
           <path d="M90 196 Q86 122 180 118 Q274 122 270 196 Q276 246 250 270 L110 270 Q84 246 90 196 Z" fill="#6F4F35" stroke="#4E3624" stroke-width="3" stroke-linejoin="round"/>
           <ellipse cx="180" cy="272" rx="20" ry="12" fill="#F8DCCB"/>
           <ellipse cx="180" cy="214" rx="66" ry="54" fill="#FFF0E6" stroke="#4E3624" stroke-width="3"/>
 
-          <!-- Mejillas, bigotes, nariz y boca -->
           <ellipse cx="134" cy="240" rx="12" ry="7" fill="#FF9DA0" opacity=".55"/>
           <ellipse cx="226" cy="240" rx="12" ry="7" fill="#FF9DA0" opacity=".55"/>
           <g stroke="#5B4030" stroke-width="1.8" stroke-linecap="round" opacity=".8">
@@ -369,7 +366,6 @@
           <ellipse cx="180" cy="227" rx="4.5" ry="3.2" fill="#E78E93"/>
           <path d="M172 236 Q180 244 188 236" fill="none" stroke="#5B4030" stroke-width="2.4" stroke-linecap="round"/>
 
-          <!-- Ojos -->
           <g class="eye-move" id="eyeL"><g class="eye">
             <ellipse cx="148" cy="209" rx="8.5" ry="10" fill="#5E5048"/>
             <ellipse cx="148" cy="213" rx="5.5" ry="5" fill="#7C6E62"/>
@@ -381,7 +377,6 @@
             <circle cx="209.5" cy="204.5" r="3.2" fill="#fff"/><circle cx="215.5" cy="213" r="1.6" fill="#fff"/>
           </g></g>
 
-          <!-- Gafas redondas -->
           <g fill="none" stroke="#34343C" stroke-width="3.2" stroke-linecap="round">
             <circle cx="148" cy="208" r="22" fill="#DFF0D8" fill-opacity=".25"/>
             <circle cx="212" cy="208" r="22" fill="#DFF0D8" fill-opacity=".25"/>
@@ -392,7 +387,6 @@
             <path d="M134 198 Q140 191 149 190"/><path d="M198 198 Q204 191 213 190"/>
           </g>
 
-          <!-- Mechón lateral con lazo verde (se refleja en el otro lado) -->
           <g id="lockL">
             <path d="M113 196 Q98 236 104 262 Q94 282 108 302 Q124 310 128 290 Q126 270 124 256 Q118 230 125 190 Z" fill="#8B6644" stroke="#4E3624" stroke-width="2.5" stroke-linejoin="round"/>
             <path d="M112 254 Q108 276 114 296" fill="none" stroke="#6F4F35" stroke-width="2" stroke-linecap="round"/>
@@ -404,14 +398,12 @@
           </g>
           <use href="#lockL" transform="translate(360 0) scale(-1 1)"/>
 
-          <!-- Flequillo recto -->
           <path d="M113 200 C104 128 152 118 180 118 C208 118 256 128 247 200 L238 180 Q226 188 214 178 Q198 188 180 178 Q162 188 146 178 Q134 188 122 180 Z" fill="#8B6644" stroke="#4E3624" stroke-width="2.5" stroke-linejoin="round"/>
           <path d="M132 150 Q180 132 228 150" fill="none" stroke="#B08A5E" stroke-width="5" stroke-linecap="round" opacity=".6"/>
           <g fill="none" stroke="#5E4230" stroke-width="1.6" stroke-linecap="round" opacity=".55">
             <path d="M146 130 Q142 158 146 178"/><path d="M164 122 Q162 152 164 184"/><path d="M180 120 L180 178"/><path d="M196 122 Q198 152 196 184"/><path d="M214 130 Q218 158 214 178"/>
           </g>
 
-          <!-- Sombrerito de paja con banda verde -->
           <ellipse cx="180" cy="132" rx="50" ry="11" fill="#E8CE8E" stroke="#5B4030" stroke-width="3"/>
           <path d="M143 130 Q140 92 180 90 Q220 92 217 130 Z" fill="#EFD99B" stroke="#5B4030" stroke-width="3" stroke-linejoin="round"/>
           <path d="M143.5 121 Q180 131 216.5 121 L217 130 Q180 140 143 130 Z" fill="#6E9A57" stroke="#3F6A34" stroke-width="2" stroke-linejoin="round"/>
@@ -420,39 +412,110 @@
           </g>
           <g fill="#C7A863"><circle cx="177" cy="105" r="1"/><circle cx="183" cy="105" r="1"/></g>
         </g>
+        </g>
+        <g class="pj pj-b">
 
-        <!-- Ramo -->
+        <g id="bodyB" data-hit tabindex="0" role="button" aria-label="Tocar al personaje">
+          <g id="legL">
+            <path d="M132 380 L164 380 L163 434 Q162 441 155 441 L141 441 Q133 441 132 434 Z" fill="#3E4A5E" stroke="#2A2028" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M148 392 L148 428" fill="none" stroke="#6A7890" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+            <ellipse cx="146" cy="450" rx="22" ry="12" fill="#4A3F44" stroke="#2A2028" stroke-width="3"/>
+          </g>
+          <use href="#legL" transform="translate(360 0) scale(-1 1)"/>
+          <ellipse cx="180" cy="338" rx="50" ry="46" fill="#7099B0" stroke="#2A2028" stroke-width="3"/>
+        </g>
+
+        <g id="headB" data-hit tabindex="0" role="button" aria-label="Tocar al personaje">
+
+          <g id="hornL">
+            <path d="M137 79 Q154 100 156 138 Q130 152 118 186 Q92 184 93 162 Q96 138 122 112 Q140 92 137 79 Z" fill="#464C60" stroke="#2D3047" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M139 92 Q146 108 148 124" fill="none" stroke="#5E667D" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+          </g>
+          <use href="#hornL" transform="translate(360 0) scale(-1 1)"/>
+
+          <path d="M76 200 Q96 208 102 190 Q100 128 180 114 Q260 128 258 190 Q264 208 284 200 Q276 224 260 234 Q262 256 248 270 L240 256 Q236 264 234 268 L126 268 Q124 264 120 256 L112 270 Q98 256 100 234 Q84 224 76 200 Z" fill="#F2EBFB" stroke="#B9AED0" stroke-width="3" stroke-linejoin="round"/>
+          <ellipse cx="180" cy="222" rx="57" ry="46" fill="#EBCDBA" stroke="#B9AED0" stroke-width="3"/>
+          <path d="M118 224 Q112 166 180 166 Q248 166 242 224 L234 214 Q226 190 206 186 Q192 184 180 196 Q168 184 154 186 Q134 190 126 214 Z" fill="#F2EBFB"/>
+          <path d="M126 214 Q134 190 154 186 Q168 184 180 196 Q192 184 206 186 Q226 190 234 214" fill="none" stroke="#B9AED0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <g class="earB-l">
+            <circle cx="116" cy="236" r="15" fill="#EBCDBA" stroke="#7A4A35" stroke-width="3"/>
+            <circle cx="117" cy="238" r="8" fill="#E0B8A0"/>
+          </g>
+          <g class="earB-r">
+            <circle cx="244" cy="236" r="15" fill="#EBCDBA" stroke="#7A4A35" stroke-width="3"/>
+            <circle cx="243" cy="238" r="8" fill="#E0B8A0"/>
+          </g>
+
+          <g fill="none" stroke-linecap="round">
+            <path d="M138 200 L160 200 M200 200 L222 200" stroke="#B9AED0" stroke-width="6.5"/>
+            <path d="M138 200 L160 200 M200 200 L222 200" stroke="#F4EEFB" stroke-width="3.6"/>
+            <path d="M132 211 Q145 206 158 211 M202 211 Q215 206 228 211" stroke="#C9A58E" stroke-width="1.6" opacity=".8"/>
+          </g>
+
+          <g class="eye-move" id="eyeLB"><g class="eye">
+            <ellipse cx="150" cy="233" rx="10.5" ry="13.5" fill="#DDD2EA" stroke="#B9AED0" stroke-width="2.5"/>
+            <path d="M150 224 L153.6 232 L150 240 L146.4 232 Z" fill="#fff" stroke="#B9AED0" stroke-width="1"/>
+            <circle cx="150" cy="241" r="4.4" fill="#fff"/>
+          </g></g>
+          <g class="eye-move" id="eyeRB"><g class="eye">
+            <ellipse cx="210" cy="233" rx="10.5" ry="13.5" fill="#DDD2EA" stroke="#B9AED0" stroke-width="2.5"/>
+            <path d="M210 224 L213.6 232 L210 240 L206.4 232 Z" fill="#fff" stroke="#B9AED0" stroke-width="1"/>
+            <circle cx="210" cy="241" r="4.4" fill="#fff"/>
+          </g></g>
+
+          <g fill="#F4EEFB" stroke="#B9AED0" stroke-width="2" stroke-linejoin="round">
+            <path d="M128 222 Q134 212 150 212 Q160 210 172 216 Q166 222 158 220 Q148 218 140 224 Q133 228 128 222 Z"/>
+            <path d="M232 222 Q226 212 210 212 Q200 210 188 216 Q194 222 202 220 Q212 218 220 224 Q227 228 232 222 Z"/>
+          </g>
+
+          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M120 233 L125 233 Q126 252 150 252 Q171 252 173 231 L173 226 L187 226 L187 231 Q189 252 210 252 Q234 252 235 233 L240 233" stroke="#9C9CA3" stroke-width="5.6"/>
+            <path d="M120 233 L125 233 Q126 252 150 252 Q171 252 173 231 L173 226 L187 226 L187 231 Q189 252 210 252 Q234 252 235 233 L240 233" stroke="#EDEDF0" stroke-width="3"/>
+          </g>
+
+          <ellipse cx="180" cy="238" rx="5" ry="3.4" fill="#F2C7AE" stroke="#C98F76" stroke-width="1.5"/>
+          <path d="M171 248 Q175.5 253 180 248 Q184.5 253 189 248" fill="none" stroke="#7A4A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        </g>
+
         <g id="bouquet">
-          <!-- Mangas verdes por detrás del ramo (se refleja en el otro lado) -->
+          <g class="pj pj-a">
+
           <g id="sleeveL">
             <path d="M104 322 Q102 302 124 304 Q146 308 142 336 Q140 352 134 358 L110 360 Q98 344 104 322 Z" fill="#7A9B45" stroke="#4A6A30" stroke-width="3" stroke-linejoin="round"/>
             <path d="M108 350 Q122 355 136 350" fill="none" stroke="#5C7F38" stroke-width="2.2" stroke-linecap="round"/>
           </g>
           <use href="#sleeveL" transform="translate(360 0) scale(-1 1)"/>
-          <!-- Tallos -->
-          <g stroke="#4FA36B" stroke-width="4.5" stroke-linecap="round" fill="none">
-            <path d="M128 282 Q150 320 180 350"/>
-            <path d="M232 282 Q210 320 180 350"/>
-            <path d="M92 322 Q135 336 180 350"/>
-            <path d="M270 322 Q225 336 180 350"/>
-            <path d="M180 298 L180 350"/>
           </g>
-          <!-- Hojas -->
+          <g class="pj pj-b">
+          <g id="sleeveLB">
+            <path d="M105.8 321.2 L133.8 355.2 L122.2 364.8 L94.2 330.8 Z" fill="#F4F6FA" stroke="#2A2028" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M104 336 L116 350" fill="none" stroke="#C9D2DE" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+          <use href="#sleeveLB" transform="translate(360 0) scale(-1 1)"/>
+          </g>
+
+          <g stroke="#4FA36B" stroke-width="4.5" stroke-linecap="round" fill="none">
+            <path d="M132 284 Q152 320 180 350"/>
+            <path d="M228 284 Q208 320 180 350"/>
+            <path d="M96 322 Q136 336 180 350"/>
+            <path d="M264 322 Q224 336 180 350"/>
+            <path d="M180 296 L180 350"/>
+          </g>
+
           <g fill="#6BC28A" stroke="#3F8F5F" stroke-width="2">
             <ellipse cx="146" cy="324" rx="19" ry="8" transform="rotate(-58 146 324)"/>
             <ellipse cx="214" cy="324" rx="19" ry="8" transform="rotate(58 214 324)"/>
           </g>
 
-          <!-- Contenedor de flores (poblado desde JavaScript) -->
           <g id="flowers"></g>
 
-          <!-- Papel de envoltura -->
           <path d="M124 322 Q152 314 180 322 Q208 314 236 322 L194 450 Q180 458 166 450 Z" fill="#FFFDF5"/>
           <path d="M124 322 Q152 314 180 322 Q208 314 236 322 L194 450 Q180 458 166 450 Z" fill="url(#dots)"/>
           <path d="M180 322 Q208 314 236 322 L194 450 Q187 456 180 457 Z" fill="#CFE3B0" opacity=".3"/>
           <path d="M124 322 Q152 314 180 322 Q208 314 236 322 L194 450 Q180 458 166 450 Z" fill="none" stroke="#5B4030" stroke-width="3" stroke-linejoin="round"/>
 
-          <!-- Lazo -->
           <g stroke="#3F6A34" stroke-width="3" stroke-linejoin="round">
             <path d="M172 392 L160 420 L172 415 L176 428 L182 398 Z" fill="#6E9A57"/>
             <path d="M188 392 L200 420 L188 415 L184 428 L178 398 Z" fill="#6E9A57"/>
@@ -461,15 +524,30 @@
             <circle cx="180" cy="392" r="8" fill="#86B06C"/>
           </g>
 
-          <!-- Puños y manos que sujetan el borde del papel (se refleja en el otro lado) -->
+          <g class="pj pj-a">
+
           <g id="handL">
             <rect x="112" y="352" width="28" height="11" rx="5.5" transform="rotate(-8 126 357)" fill="#A9713A" stroke="#5B4030" stroke-width="2.5"/>
             <ellipse cx="141" cy="364" rx="12" ry="10.5" fill="#FFF0E6" stroke="#4E3624" stroke-width="2.5"/>
             <path d="M137 369 L137 374 M143 370 L143 375" stroke="#4E3624" stroke-width="1.5" stroke-linecap="round" fill="none"/>
           </g>
           <use href="#handL" transform="translate(360 0) scale(-1 1)"/>
+          </g>
+          <g class="pj pj-b">
+          <g id="handLB">
+            <rect x="118" y="357" width="22" height="9" rx="4" transform="rotate(-39.5 129 361.5)" fill="#F4F6FA" stroke="#2A2028" stroke-width="2.5"/>
+            <circle cx="122.5" cy="357.5" r="1.7" fill="#2A2028"/>
+            <ellipse cx="141" cy="365" rx="12.5" ry="11" fill="#EBCDBA" stroke="#7A4A35" stroke-width="2.6"/>
+            <ellipse cx="135" cy="355" rx="5" ry="3.8" transform="rotate(-30 135 355)" fill="#EBCDBA" stroke="#7A4A35" stroke-width="2"/>
+            <g fill="#5A382A">
+              <path d="M133 373.5 L137 374.5 L134.6 379 Z"/>
+              <path d="M139.5 375.5 L143.5 375.5 L141.5 380 Z"/>
+              <path d="M146 374.5 L150 373.5 L148.4 379 Z"/>
+            </g>
+          </g>
+          <use href="#handLB" transform="translate(360 0) scale(-1 1)"/>
+          </g>
         </g>
-
       </g></g></g>
     </svg>
   </div>
@@ -477,7 +555,7 @@
   <p class="hint">Toca al personaje, a las flores o al fondo.</p>
 
   <section class="card">
-    <p class="msg" id="msg">Este ramo cruzó el prado con mucho cuidado solo para decirte: eres un sol.</p>
+    <p class="msg" id="msg">Un pequeño detalle para ti, con cariño.</p>
     <p class="from" id="fromLine"></p>
   </section>
 
@@ -487,6 +565,13 @@
   </div>
 
   <div class="panel" id="panel" hidden>
+    <div role="radiogroup" aria-label="Personaje" style="display:grid;gap:6px">
+      <span class="field-label">Personaje</span>
+      <div class="choices">
+        <button type="button" class="choice" role="radio" data-pj="a" aria-checked="true">Ratón con sombrero</button>
+        <button type="button" class="choice" role="radio" data-pj="b" aria-checked="false">Chibi con cuernos</button>
+      </div>
+    </div>
     <label>Para
       <input id="inTo" type="text" maxlength="40" placeholder="alguien especial">
     </label>
@@ -517,38 +602,39 @@
   var svg = document.getElementById('scene');
   var bubble = document.getElementById('bubble');
 
-  /* ---------- Construcción de las flores ---------- */
-  var PLUM = '#4A3222';
+  var INK = '#4A3222';
+  var FLOWER_SIZE = 31;
+  var FLOWER_POSITIONS = [
+    { x: 132, y: 284, d: 0 },
+    { x: 228, y: 284, d: 0.6 },
+    { x: 96, y: 322, d: 1.1 },
+    { x: 264, y: 322, d: 1.6 },
+    { x: 180, y: 296, d: 0.3 }
+  ];
+
   function flowerMarkup(f) {
-    var sun = f.type === 'sun';
-    var n = sun ? 14 : 9;
-    var r = f.r;
-    var pw = r * (sun ? 0.17 : 0.24);
-    var ph = r * (sun ? 0.46 : 0.42);
-    var pr = r * (sun ? 0.62 : 0.64);
-    var back = sun ? '#FFB800' : '#FFF27A';
-    var front = '#FFD84D';
-    var stroke = sun ? '#C98700' : '#E0B400';
-    var center = sun ? '#D48A3C' : '#FFB347';
-    var i, a, petals = '';
+    var r = FLOWER_SIZE;
+    var n = 14;
+    var pw = r * 0.17;
+    var ph = r * 0.46;
+    var pr = r * 0.62;
+    var petals = '';
+    var i, angle;
 
     for (i = 0; i < n; i++) {
-      a = (i * 360 / n).toFixed(2);
-      petals += '<ellipse cx="0" cy="' + (-pr) + '" rx="' + pw + '" ry="' + ph + '" transform="rotate(' + a + ')" fill="' + back + '" stroke="' + stroke + '" stroke-width="1.5"/>';
+      angle = (i * 360 / n).toFixed(2);
+      petals += '<ellipse cx="0" cy="' + (-pr) + '" rx="' + pw + '" ry="' + ph + '" transform="rotate(' + angle + ')" fill="#FFB800" stroke="#C98700" stroke-width="1.5"/>';
     }
-    if (sun) {
-      for (i = 0; i < n; i++) {
-        a = (i * 360 / n + 360 / n / 2).toFixed(2);
-        petals += '<ellipse cx="0" cy="' + (-r * 0.52) + '" rx="' + (pw * 0.9) + '" ry="' + (ph * 0.8) + '" transform="rotate(' + a + ')" fill="' + front + '" stroke="' + stroke + '" stroke-width="1.2"/>';
-      }
+    for (i = 0; i < n; i++) {
+      angle = (i * 360 / n + 360 / n / 2).toFixed(2);
+      petals += '<ellipse cx="0" cy="' + (-r * 0.52) + '" rx="' + (pw * 0.9) + '" ry="' + (ph * 0.8) + '" transform="rotate(' + angle + ')" fill="#FFD84D" stroke="#C98700" stroke-width="1.2"/>';
     }
 
-    var cr = r * 0.42;
     var face =
-      '<circle cx="0" cy="0" r="' + cr + '" fill="' + center + '" stroke="#5B4030" stroke-width="2"/>' +
-      '<circle cx="' + (-r * 0.14) + '" cy="' + (-r * 0.04) + '" r="' + (r * 0.055) + '" fill="' + PLUM + '"/>' +
-      '<circle cx="' + (r * 0.14) + '" cy="' + (-r * 0.04) + '" r="' + (r * 0.055) + '" fill="' + PLUM + '"/>' +
-      '<path d="M' + (-r * 0.07) + ' ' + (r * 0.08) + ' Q0 ' + (r * 0.17) + ' ' + (r * 0.07) + ' ' + (r * 0.08) + '" fill="none" stroke="' + PLUM + '" stroke-width="1.7" stroke-linecap="round"/>' +
+      '<circle cx="0" cy="0" r="' + (r * 0.42) + '" fill="#D48A3C" stroke="#5B4030" stroke-width="2"/>' +
+      '<circle cx="' + (-r * 0.14) + '" cy="' + (-r * 0.04) + '" r="' + (r * 0.055) + '" fill="' + INK + '"/>' +
+      '<circle cx="' + (r * 0.14) + '" cy="' + (-r * 0.04) + '" r="' + (r * 0.055) + '" fill="' + INK + '"/>' +
+      '<path d="M' + (-r * 0.07) + ' ' + (r * 0.08) + ' Q0 ' + (r * 0.17) + ' ' + (r * 0.07) + ' ' + (r * 0.08) + '" fill="none" stroke="' + INK + '" stroke-width="1.7" stroke-linecap="round"/>' +
       '<ellipse cx="' + (-r * 0.25) + '" cy="' + (r * 0.09) + '" rx="' + (r * 0.08) + '" ry="' + (r * 0.05) + '" fill="#FF8FAE" opacity=".85"/>' +
       '<ellipse cx="' + (r * 0.25) + '" cy="' + (r * 0.09) + '" rx="' + (r * 0.08) + '" ry="' + (r * 0.05) + '" fill="#FF8FAE" opacity=".85"/>';
 
@@ -556,16 +642,8 @@
       '<g class="fl" style="--d:' + f.d + 's"><g class="fs">' + petals + face + '</g></g></g>';
   }
 
-  var flowers = [
-    { type: 'daisy', x: 128, y: 282, r: 32, d: 0 },
-    { type: 'daisy', x: 232, y: 282, r: 32, d: 0.6 },
-    { type: 'sun',   x: 92,  y: 322, r: 27, d: 1.1 },
-    { type: 'daisy', x: 270, y: 322, r: 26, d: 1.6 },
-    { type: 'sun',   x: 180, y: 298, r: 42, d: 0.3 }
-  ];
-  document.getElementById('flowers').innerHTML = flowers.map(flowerMarkup).join('');
+  document.getElementById('flowers').innerHTML = FLOWER_POSITIONS.map(flowerMarkup).join('');
 
-  /* ---------- Sonido (Web Audio, tras una acción del usuario) ---------- */
   var audio = null;
   var soundOn = true;
   function tone(freq, dur, type, slideTo, vol) {
@@ -584,9 +662,13 @@
       g.connect(audio.destination);
       o.start(t);
       o.stop(t + dur);
-    } catch (e) { /* Audio no disponible: la ejecución continúa sin sonido */ }
+    } catch (e) {}
   }
   function squeak() {
+    if (currentPj() === 'b') {
+      tone(330, 0.2, 'triangle', 250, 0.08);
+      return;
+    }
     tone(900, 0.12, 'sine', 1700, 0.07);
     setTimeout(function () { tone(1300, 0.1, 'sine', 2100, 0.06); }, 90);
   }
@@ -595,14 +677,12 @@
     tone(scale[Math.floor(Math.random() * scale.length)], 0.4, 'triangle', null, 0.07);
   }
 
-  /* ---------- Formas de las partículas (SVG en línea) ---------- */
   var SHAPES = {
     heart: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path d="M12 21s-8-5.4-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.6-8 11-8 11z" fill="#FF8FAE"/></svg>',
     spark: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="#FFD84D"/></svg>',
-    flower: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><g fill="#FFE66D" stroke="#E0B400" stroke-width=".8"><circle cx="12" cy="6.8" r="4.4"/><circle cx="16.9" cy="10.4" r="4.4"/><circle cx="15" cy="16.2" r="4.4"/><circle cx="9" cy="16.2" r="4.4"/><circle cx="7.1" cy="10.4" r="4.4"/></g><circle cx="12" cy="12" r="3.3" fill="#FFB347"/></svg>'
+    flower: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><g fill="#FFC933" stroke="#C98700" stroke-width=".8"><circle cx="12" cy="4.8" r="3.6"/><circle cx="17.1" cy="6.9" r="3.6"/><circle cx="19.2" cy="12" r="3.6"/><circle cx="17.1" cy="17.1" r="3.6"/><circle cx="12" cy="19.2" r="3.6"/><circle cx="6.9" cy="17.1" r="3.6"/><circle cx="4.8" cy="12" r="3.6"/><circle cx="6.9" cy="6.9" r="3.6"/></g><circle cx="12" cy="12" r="4.4" fill="#D48A3C"/></svg>'
   };
 
-  /* ---------- Partículas al tocar ---------- */
   function burst(clientX, clientY, emojis, count, upward) {
     var rect = stage.getBoundingClientRect();
     for (var i = 0; i < count; i++) {
@@ -622,15 +702,27 @@
     }
   }
 
-  /* ---------- Globo de diálogo ---------- */
-  var lines = [
-    '¡Tengo algo para ti!',
-    '¡Squeak squeak!',
-    'Eres un sol',
-    'Vine corriendo con flores',
-    '¡Te mando un abrazo!',
-    'Las amarillas dan alegría'
-  ];
+  var LINES = {
+    a: [
+      '¡Tengo algo para ti!',
+      '¡Squeak squeak!',
+      'Eres un sol',
+      'Vine corriendo con flores',
+      '¡Te mando un abrazo!',
+      'Las amarillas dan alegría'
+    ],
+    b: [
+      'Hmm. Esto es para ti.',
+      'Cuidado con los cuernos.',
+      'Practiqué esta entrega.',
+      'Acepta el ramo, por favor.',
+      'Sonríe un poco, anda.',
+      'Las flores no se me caen.'
+    ]
+  };
+  function currentPj() {
+    return document.body.getAttribute('data-pj') === 'b' ? 'b' : 'a';
+  }
   var lineIdx = 0;
   var bubbleTimer = null;
   function say(text, ms) {
@@ -639,21 +731,24 @@
     clearTimeout(bubbleTimer);
     bubbleTimer = setTimeout(function () { bubble.classList.remove('show'); }, ms || 2800);
   }
-  setTimeout(function () { say(lines[0], 3200); lineIdx = 1; }, reduceMotion ? 300 : 2100);
+  setTimeout(function () { say(LINES[currentPj()][0], 3200); lineIdx = 1; }, reduceMotion ? 300 : 2100);
 
-  /* ---------- Interacción con el personaje ---------- */
   var jumpEl = document.getElementById('jump');
+  function activeHead() {
+    return document.getElementById(document.body.getAttribute('data-pj') === 'b' ? 'headB' : 'head');
+  }
   function mouseTap() {
     jumpEl.classList.remove('jump');
     void jumpEl.getBoundingClientRect();
     jumpEl.classList.add('jump');
     squeak();
-    say(lines[lineIdx % lines.length]);
+    var set = LINES[currentPj()];
+    say(set[lineIdx % set.length]);
     lineIdx++;
-    var h = document.getElementById('head').getBoundingClientRect();
+    var h = activeHead().getBoundingClientRect();
     burst(h.left + h.width / 2, h.top + 10, ['heart', 'spark'], 8, true);
   }
-  ['head', 'bodyG'].forEach(function (id) {
+  ['head', 'bodyG', 'headB', 'bodyB'].forEach(function (id) {
     var el = document.getElementById(id);
     el.addEventListener('click', mouseTap);
     el.addEventListener('keydown', function (e) {
@@ -661,7 +756,6 @@
     });
   });
 
-  /* ---------- Interacción con las flores ---------- */
   function flowerTap(el) {
     var fs = el.querySelector('.fs');
     fs.classList.remove('spin');
@@ -678,15 +772,13 @@
     });
   });
 
-  /* ---------- Toque en el fondo ---------- */
   stage.addEventListener('pointerdown', function (e) {
     if (e.target.closest && e.target.closest('[data-hit]')) return;
     burst(e.clientX, e.clientY, ['flower', 'spark', 'heart'], 6, false);
     tone(1046.5, 0.25, 'triangle', null, 0.05);
   });
 
-  /* ---------- Los ojos siguen al puntero ---------- */
-  var eyes = [document.getElementById('eyeL'), document.getElementById('eyeR')];
+  var eyes = Array.prototype.slice.call(document.querySelectorAll('.eye-move'));
   function look(x, y) {
     var r = svg.getBoundingClientRect();
     var cx = r.left + r.width * (180 / 360);
@@ -700,7 +792,6 @@
   document.addEventListener('pointermove', function (e) { look(e.clientX, e.clientY); });
   document.addEventListener('pointerdown', function (e) { look(e.clientX, e.clientY); });
 
-  /* ---------- Partículas ambientales ---------- */
   var sky = document.getElementById('sky');
   var ambient = ['flower', 'spark', 'heart', 'flower', 'spark'];
   function spawnFloat() {
@@ -721,11 +812,8 @@
     setInterval(spawnFloat, 1300);
   }
 
-  /* ---------- Personalización del regalo ---------- */
-  /* Modo remitente: sin datos en la URL; el texto se guarda en el navegador.
-     Modo destinatario: la URL incluye la dedicatoria en el fragmento (#para=...&msg=...&de=...). */
   var DEFAULT_TO = 'alguien especial';
-  var DEFAULT_MSG = 'Este ramo cruzó el prado con mucho cuidado solo para decirte: eres un sol.';
+  var DEFAULT_MSG = 'Un pequeño detalle para ti, con cariño.';
   var STORE_KEY = 'ramo-dedicatoria';
 
   var inTo = document.getElementById('inTo');
@@ -737,26 +825,37 @@
   var toName = document.getElementById('toName');
   var msg = document.getElementById('msg');
   var fromLine = document.getElementById('fromLine');
+  var choices = Array.prototype.slice.call(document.querySelectorAll('.choice'));
+  var pj = 'a';
+
+  function setCharacter(value) {
+    pj = value === 'b' ? 'b' : 'a';
+    document.body.setAttribute('data-pj', pj);
+    choices.forEach(function (btn) {
+      btn.setAttribute('aria-checked', btn.getAttribute('data-pj') === pj ? 'true' : 'false');
+    });
+  }
 
   function readShared() {
     var params = new URLSearchParams(location.hash.replace(/^#/, ''));
-    var v = { to: params.get('para') || '', msg: params.get('msg') || '', from: params.get('de') || '' };
-    return (v.to || v.msg || v.from) ? v : null;
+    var v = { to: params.get('para') || '', msg: params.get('msg') || '', from: params.get('de') || '', pj: params.get('pj') || '' };
+    return (v.to || v.msg || v.from || v.pj) ? v : null;
   }
   function readStored() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; }
   }
   function writeStored(v) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) { /* almacenamiento no disponible */ }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) {}
   }
   function currentValues() {
-    return { to: inTo.value.trim(), msg: inMsg.value.trim(), from: inFrom.value.trim() };
+    return { to: inTo.value.trim(), msg: inMsg.value.trim(), from: inFrom.value.trim(), pj: pj };
   }
   function buildLink(v) {
     var params = new URLSearchParams();
     if (v.to) params.set('para', v.to);
     if (v.msg) params.set('msg', v.msg);
     if (v.from) params.set('de', v.from);
+    if (v.pj === 'b') params.set('pj', 'b');
     var query = params.toString();
     return location.href.split('#')[0] + (query ? '#' + query : '');
   }
@@ -772,10 +871,11 @@
   }
 
   var shared = readShared();
-  var initial = shared || readStored() || { to: '', msg: '', from: '' };
+  var initial = shared || readStored() || { to: '', msg: '', from: '', pj: 'a' };
   inTo.value = initial.to || '';
   inMsg.value = initial.msg || '';
   inFrom.value = initial.from || '';
+  setCharacter(initial.pj);
   if (shared) document.body.classList.add('recipient');
   refresh();
 
@@ -783,6 +883,20 @@
     el.addEventListener('input', function () {
       writeStored(refresh());
       linkStatus.textContent = '';
+    });
+  });
+  choices.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setCharacter(btn.getAttribute('data-pj'));
+      lineIdx = 1;
+      say(LINES[pj][0], 2600);
+      writeStored(refresh());
+      linkStatus.textContent = '';
+      jumpEl.classList.remove('jump');
+      void jumpEl.getBoundingClientRect();
+      jumpEl.classList.add('jump');
+      var h = activeHead().getBoundingClientRect();
+      burst(h.left + h.width / 2, h.top + h.height / 2, ['spark', 'flower'], 6, false);
     });
   });
   window.addEventListener('hashchange', function () { location.reload(); });
@@ -807,7 +921,7 @@
   if (navigator.share) {
     shareBtn.hidden = false;
     shareBtn.addEventListener('click', function () {
-      navigator.share({ title: 'Un ramo para ti', url: linkOut.value }).catch(function () { /* cancelado */ });
+      navigator.share({ title: 'Un ramo para ti', url: linkOut.value }).catch(function () {});
     });
   }
 
@@ -827,7 +941,7 @@
     soundBtn.setAttribute('aria-label', soundOn ? 'Sonido activado' : 'Sonido desactivado');
     soundBtn.textContent = soundOn ? 'Sonido' : 'Sin sonido';
   });
-})();
+  })();
 </script>
 </body>
 </html>
