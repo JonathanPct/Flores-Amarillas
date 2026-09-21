@@ -210,6 +210,7 @@
   .panel a { color: var(--ink); font-size: .92rem; text-align: center; }
   .panel input[readonly] { font-size: .85rem; text-overflow: ellipsis; }
   .recipient #editBtn, .recipient #panel { display: none !important; }
+  body.pending h1, body.pending .card { opacity: 0; }
 
   #arrive { animation: arrive 1.9s ease-out both; }
   @keyframes arrive {
@@ -836,10 +837,61 @@
     });
   }
 
+  var canCompress = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
+  var MASK = [23, 91, 154, 7, 201, 68];
+  var SEP = '\u0001';
+
+  function mask(bytes) {
+    var out = new Uint8Array(bytes.length);
+    for (var i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ MASK[i % MASK.length] ^ (i & 255);
+    return out;
+  }
+  function toB64(bytes) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function fromB64(text) {
+    var b64 = text.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    var bin = atob(b64);
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function transform(bytes, Ctor) {
+    var stream = new Blob([bytes]).stream().pipeThrough(new Ctor('deflate-raw'));
+    return new Response(stream).arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+  }
+  function encodeValues(v) {
+    var text = [v.pj === 'b' ? '1' : '0', v.to, v.msg, v.from].join(SEP);
+    var bytes = new TextEncoder().encode(text);
+    var plain = function () { return 'p' + toB64(mask(bytes)); };
+    if (!canCompress) return Promise.resolve(plain());
+    return transform(bytes, CompressionStream).then(function (packed) {
+      return 'z' + toB64(mask(packed));
+    }).catch(plain);
+  }
+  function decodeToken(token) {
+    var raw;
+    try { raw = mask(fromB64(token.slice(1))); } catch (e) { return Promise.resolve(null); }
+    var toValues = function (bytes) {
+      var parts = new TextDecoder().decode(bytes).split(SEP);
+      return { pj: parts[0] === '1' ? 'b' : 'a', to: parts[1] || '', msg: parts[2] || '', from: parts[3] || '' };
+    };
+    var kind = token.charAt(0);
+    if (kind === 'p') return Promise.resolve(toValues(raw));
+    if (kind === 'z' && canCompress) return transform(raw, DecompressionStream).then(toValues).catch(function () { return null; });
+    return Promise.resolve(null);
+  }
+
   function readShared() {
-    var params = new URLSearchParams(location.hash.replace(/^#/, ''));
+    var hash = location.hash.replace(/^#/, '');
+    if (!hash) return Promise.resolve(null);
+    if (hash.indexOf('=') === -1) return decodeToken(hash);
+    var params = new URLSearchParams(hash);
     var v = { to: params.get('para') || '', msg: params.get('msg') || '', from: params.get('de') || '', pj: params.get('pj') || '' };
-    return (v.to || v.msg || v.from || v.pj) ? v : null;
+    return Promise.resolve((v.to || v.msg || v.from || v.pj) ? v : null);
   }
   function readStored() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; }
@@ -850,34 +902,44 @@
   function currentValues() {
     return { to: inTo.value.trim(), msg: inMsg.value.trim(), from: inFrom.value.trim(), pj: pj };
   }
-  function buildLink(v) {
-    var params = new URLSearchParams();
-    if (v.to) params.set('para', v.to);
-    if (v.msg) params.set('msg', v.msg);
-    if (v.from) params.set('de', v.from);
-    if (v.pj === 'b') params.set('pj', 'b');
-    var query = params.toString();
-    return location.href.split('#')[0] + (query ? '#' + query : '');
+
+  var linkSeq = 0;
+  function setLink(link) {
+    linkOut.value = link;
+    previewLink.href = link;
+  }
+  function updateLink(v) {
+    var seq = ++linkSeq;
+    var base = location.href.split('#')[0];
+    if (!v.to && !v.msg && !v.from && v.pj !== 'b') {
+      setLink(base);
+      return;
+    }
+    encodeValues(v).then(function (token) {
+      if (seq === linkSeq) setLink(base + '#' + token);
+    });
   }
   function refresh() {
     var v = currentValues();
     toName.textContent = v.to || DEFAULT_TO;
     msg.textContent = v.msg || DEFAULT_MSG;
     fromLine.textContent = v.from ? 'Con cariño, ' + v.from : '';
-    var link = buildLink(v);
-    linkOut.value = link;
-    previewLink.href = link;
+    updateLink(v);
     return v;
   }
 
-  var shared = readShared();
-  var initial = shared || readStored() || { to: '', msg: '', from: '', pj: 'a' };
-  inTo.value = initial.to || '';
-  inMsg.value = initial.msg || '';
-  inFrom.value = initial.from || '';
-  setCharacter(initial.pj);
-  if (shared) document.body.classList.add('recipient');
-  refresh();
+  var hasHash = location.hash.length > 1;
+  if (hasHash) document.body.classList.add('pending', 'recipient');
+  readShared().then(function (shared) {
+    var blank = { to: '', msg: '', from: '', pj: 'a' };
+    var initial = shared || (hasHash ? blank : (readStored() || blank));
+    inTo.value = initial.to || '';
+    inMsg.value = initial.msg || '';
+    inFrom.value = initial.from || '';
+    setCharacter(initial.pj);
+    document.body.classList.remove('pending');
+    refresh();
+  });
 
   [inTo, inMsg, inFrom].forEach(function (el) {
     el.addEventListener('input', function () {
